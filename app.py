@@ -16,7 +16,13 @@ def load_decision_data():
     return pd.read_csv("data/processed/stock_inventory_decisions.csv")
 
 
+@st.cache_data
+def load_forecast_data():
+    return pd.read_csv("data/processed/future_7_day_forecast.csv")
+
+
 decision_data = load_decision_data()
+future_forecast = load_forecast_data()
 
 
 # -----------------------------
