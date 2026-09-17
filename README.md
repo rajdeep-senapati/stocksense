@@ -111,6 +111,7 @@ StockSense follows an end-to-end pipeline that combines machine learning with in
                     ┌─────────────────────┐
                     │  Streamlit Dashboard│
                     └─────────────────────┘
+```
 
 ## 📊 Dataset
 
@@ -202,12 +203,12 @@ Rolling features are calculated using only historical observations to prevent da
 
 Several approaches were evaluated:
 
-| Model | Validation MAE | Validation RMSE |
-|---|---:|---:|
-| Naive (previous day) | 11.30 | 49.12 |
-| 7-Day Moving Average | 9.55 | 37.12 |
-| Linear Regression | 8.80 | 35.24 |
-| Tuned XGBoost | **8.52** | **34.75** |
+| Model                | Validation MAE | Validation RMSE |
+| -------------------- | -------------: | --------------: |
+| Naive (previous day) |          11.30 |           49.12 |
+| 7-Day Moving Average |           9.55 |           37.12 |
+| Linear Regression    |           8.80 |           35.24 |
+| Tuned XGBoost        |       **8.52** |       **34.75** |
 
 The final forecasting model uses **XGBoost Regressor** with:
 
@@ -264,12 +265,12 @@ Simulated inventory is then compared with the forecast-based reorder point to es
 
 ### Risk Classification
 
-| Inventory Gap % | Risk Level | Recommended Action |
-|---:|---|---|
-| ≤ 0% | Healthy | No action |
-| 0–25% | Watch | Monitor closely |
-| 25–50% | High | Reorder soon |
-| > 50% | Critical | Reorder immediately |
+| Inventory Gap % | Risk Level | Recommended Action  |
+| --------------: | ---------- | ------------------- |
+|            ≤ 0% | Healthy    | No action           |
+|           0–25% | Watch      | Monitor closely     |
+|          25–50% | High       | Reorder soon        |
+|           > 50% | Critical   | Reorder immediately |
 
 These recommendations are **decision-support outputs**, not actual purchase orders.
 
@@ -328,4 +329,3 @@ Potential extensions include:
 **UCI Online Retail Dataset**
 
 The dataset is provided by the UCI Machine Learning Repository and is licensed under **CC BY 4.0**.
-```
