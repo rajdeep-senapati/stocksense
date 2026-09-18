@@ -155,7 +155,7 @@ The preprocessing pipeline:
 
 After applying these rules, **523,888 valid demand transaction rows** remain.
 
-The cleaned transactions are aggregated into daily SKU-level demand and expanded across each SKU's observed active period so that days with no recorded demand are represented as zero demand.
+The cleaned demand data is aggregated to the daily demand of SKU and expanded for the entire active period of the SKU such that the days without demand are considered as zero demand.
 
 ---
 
