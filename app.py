@@ -60,6 +60,7 @@ page = st.sidebar.radio(
         "Forecast",
         "Inventory Risk",
         "Recommended Actions",
+        "Forecast & Data Quality",
     ],
 )
 
@@ -141,7 +142,6 @@ elif page == "SKU Explorer":
 
     st.divider()
 
-    # 7-Day Demand Forecast
     st.subheader("7-Day Demand Forecast")
 
     sku_forecast = forecast_data[
@@ -288,7 +288,6 @@ elif page == "Inventory Risk":
         "the forecast-based reorder point."
     )
 
-    # Risk filter
     risk_options = ["All", "Healthy", "Watch", "High", "Critical"]
 
     selected_risk = st.selectbox("Filter by Risk Level", risk_options)
@@ -300,7 +299,6 @@ elif page == "Inventory Risk":
             decision_data["risk_level"] == selected_risk
         ].copy()
 
-    # Summary metrics
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric("SKUs", f"{len(filtered_data):,}")
@@ -319,7 +317,6 @@ elif page == "Inventory Risk":
 
     st.divider()
 
-    # Risk distribution
     st.subheader("Risk Distribution")
 
     risk_counts = (
@@ -332,7 +329,6 @@ elif page == "Inventory Risk":
 
     st.divider()
 
-    # Inventory vs Reorder Point
     st.subheader("Top 15 SKUs by Inventory Gap")
 
     chart_data = (
@@ -354,7 +350,6 @@ elif page == "Inventory Risk":
 
     st.bar_chart(chart_data, width="stretch")
 
-    # Detailed table
     st.subheader("Priority SKUs")
 
     priority_data = (
@@ -418,7 +413,6 @@ elif page == "Recommended Actions":
         "reorder point, and simulated inventory position."
     )
 
-    # Action filter
     action_options = [
         "All",
         "Reorder immediately",
@@ -436,7 +430,6 @@ elif page == "Recommended Actions":
             decision_data["recommended_action"] == selected_action
         ].copy()
 
-    # Summary metrics
     col1, col2, col3 = st.columns(3)
 
     col1.metric("SKUs", f"{len(action_data):,}")
@@ -452,7 +445,6 @@ elif page == "Recommended Actions":
 
     st.divider()
 
-    # Priority table
     st.subheader("Priority Actions")
 
     priority_data = action_data.sort_values("inventory_gap_pct", ascending=False).copy()
@@ -503,4 +495,133 @@ elif page == "Recommended Actions":
     st.caption(
         "Recommendations are based on forecast-derived reorder points and "
         "simulated inventory. They are decision-support outputs, not actual purchase orders."
+    )
+
+
+# -----------------------------
+# Forecast & Data Quality
+# -----------------------------
+elif page == "Forecast & Data Quality":
+
+    st.header("Forecast & Data Quality")
+
+    st.markdown(
+        "Model validation, data-quality controls, and inventory assumptions "
+        "used to support the forecasting and decision engine."
+    )
+
+    st.subheader("Data Processing Controls")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Raw Transactions", "541,909")
+    col2.metric("Duplicate Records Removed", "5,268")
+    col3.metric("Valid Demand Rows", "523,888")
+    col4.metric("SKU-Day Records", "1,076,751")
+
+    st.caption(
+        "Source: UCI Online Retail dataset. Processing excludes cancellations, "
+        "accounting adjustments, non-product transactions, and damaged/unsaleable "
+        "inventory adjustments using explicit business rules."
+    )
+
+    st.divider()
+
+    st.subheader("Demand Coverage")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("SKUs Analyzed", "3,936")
+    col2.metric("Positive-Demand SKU-Days", "276,167")
+    col3.metric("Top 20% SKU Demand Share", "76.88%")
+
+    st.divider()
+
+    st.subheader("Forecast Model Validation")
+
+    validation = pd.DataFrame(
+        {
+            "Model": [
+                "Naive (Previous Day)",
+                "7-Day Moving Average",
+                "Linear Regression",
+                "Tuned XGBoost",
+            ],
+            "Validation MAE": [11.30, 9.55, 8.80, 8.52],
+            "Validation RMSE": [49.12, 37.12, 35.24, 34.75],
+        }
+    )
+
+    st.dataframe(validation, hide_index=True, width="stretch")
+
+    best_model = validation.loc[validation["Validation MAE"].idxmin()]
+
+    st.success(
+        f"Selected model: {best_model['Model']} "
+        f"with validation MAE {best_model['Validation MAE']:.2f} "
+        f"and RMSE {best_model['Validation RMSE']:.2f}."
+    )
+
+    st.subheader("Held-Out Test Performance")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("XGBoost MAE", "10.25")
+    col2.metric("XGBoost RMSE", "41.24")
+    col3.metric("Naive Baseline MAE", "14.16")
+
+    st.caption(
+        "Validation uses chronological train/validation/test splits to preserve "
+        "the time-dependent structure of the forecasting problem. The forecasting "
+        "pipeline uses 11 lag, rolling-window, and calendar features."
+    )
+
+    st.divider()
+
+    st.subheader("Inventory Decision Controls")
+
+    assumptions = pd.DataFrame(
+        {
+            "Control": [
+                "Forecast Horizon",
+                "Lead Time",
+                "Service Level",
+                "Safety-Stock Z Score",
+                "Inventory Basis",
+            ],
+            "Configured Value": [
+                "7 days",
+                "7 days",
+                "95%",
+                "1.645",
+                "Recent 14-day historical demand",
+            ],
+        }
+    )
+
+    st.dataframe(assumptions, hide_index=True, width="stretch")
+
+    st.markdown(
+        "**Reorder Point = Expected Lead-Time Demand + Safety Stock**"
+    )
+
+    risk_rules = pd.DataFrame(
+        {
+            "Inventory Gap %": ["≤ 0%", "0–25%", "25–50%", "> 50%"],
+            "Risk Level": ["Healthy", "Watch", "High", "Critical"],
+            "Recommended Action": [
+                "No action",
+                "Monitor closely",
+                "Reorder soon",
+                "Reorder immediately",
+            ],
+        }
+    )
+
+    st.dataframe(risk_rules, hide_index=True, width="stretch")
+
+    st.warning(
+        "Inventory is simulated because the source dataset does not contain "
+        "actual on-hand inventory or supplier lead-time data. Recommendations "
+        "are decision-support outputs, not actual purchase orders."
     )
