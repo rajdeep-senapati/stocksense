@@ -220,6 +220,17 @@ The final forecasting model uses **XGBoost Regressor** with:
 
 A chronological train/validation/test strategy is used instead of random splitting because the problem is time-dependent.
 
+### Targeted Demand-Intensity Feature Experiment
+
+Three additional features were evaluated on the validation set: the maximum demand over the previous 7 days, the maximum over the previous 28 days, and the ratio of the previous 7-day average to the previous 28-day average.
+
+| Validation model | MAE | RMSE |
+| ----------------- | ---: | ---: |
+| Current XGBoost (11 features) | 8.5202 | **34.7484** |
+| XGBoost + demand-intensity features | **8.5077** | 34.7511 |
+
+The added features produced a very small MAE improvement but a slightly worse RMSE. Segment-level evaluation also showed no improvement for high-demand observations (RMSE 107.352 for the current model versus 107.403 for the enhanced model). Since RMSE is the primary selection metric for this project, the original 11-feature XGBoost model remains selected. The experimental features are not part of the production model.
+
 ### Held-Out Test Performance
 
 The tuned XGBoost model achieved:
